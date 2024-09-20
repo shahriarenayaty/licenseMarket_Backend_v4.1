@@ -4,8 +4,9 @@
   "description": "This project demonstrates how to build a custom HTTP server from scratch using Node.js and TypeScript, without relying on popular web frameworks like Express or Nest.js. The server supports multiple HTTP methods (GET, POST, PUT) and includes an efficient routing system, middleware implementation, and error handling mechanism.",
   "main": "src/server",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "env-cmd -f ./config/local.env node dist/server.js",
     "build": "tsc",
+    "dev": "env-cmd -f ./config/local.env nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -36,6 +37,11 @@
   ],
   "devDependencies": {
     "@types/node": "^22.5.5",
+    "nodemon": "^3.1.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "env-cmd": "^10.1.0"
   }
 }
