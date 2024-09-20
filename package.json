@@ -1,0 +1,41 @@
+{
+  "name": "licensemarket_backend_v4.1",
+  "version": "0.0.1",
+  "description": "This project demonstrates how to build a custom HTTP server from scratch using Node.js and TypeScript, without relying on popular web frameworks like Express or Nest.js. The server supports multiple HTTP methods (GET, POST, PUT) and includes an efficient routing system, middleware implementation, and error handling mechanism.",
+  "main": "src/server",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shahriarenayaty/licenseMarket_Backend_v4.1.git"
+  },
+  "author": "Shahriar enayaty moghaddam",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shahriarenayaty/licenseMarket_Backend_v4.1/issues"
+  },
+  "homepage": "https://github.com/shahriarenayaty/licenseMarket_Backend_v4.1#readme",
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "http-server",
+    "custom-server",
+    "backend-development",
+    "routing-system",
+    "middleware",
+    "error-handling",
+    "rest-api",
+    "nodejs-core",
+    "nodejs-routing",
+    "performance",
+    "scalable-backend",
+    "no-framework"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "typescript": "^5.6.2"
+  }
+}
