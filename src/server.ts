@@ -2,6 +2,7 @@ import http from "http";
 // import Router from "./utils/router";
 
 import { Router } from "./utils/Router";
+import { userRoutes } from "./route/users";
 const PORT = process.env.PORT || 3000;
 
 // Initialize an array of users to simulate a data store
@@ -65,28 +66,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(500);
     res.end("Something went wrong");
   });
-  // Custom route
-  myRouter.get("/users", (req, res, next) => {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ users: ["user1", "user2"] }));
-  });
 
-  // Custom POST route
-  myRouter.post("/users", (req, res, next) => {
-    console.log("Received data:", req.body);
-    res.writeHead(201, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "User created", data: req.body }));
-  });
-
-  // Custom PUT route
-  myRouter.put("/users/:id", (req, res, next) => {
-    const userId = req.params?.id;
-    console.log(`Updating user with ID: ${userId}`, req.body);
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({ message: `User ${userId} updated`, data: req.body })
-    );
-  });
+  userRoutes(myRouter);
 
   myRouter.handle(req, res);
 });

@@ -1,5 +1,6 @@
 import http from "http";
 import url from "url";
+import { RouteTrie } from "./Route";
 
 // Define types for middleware and error handling
 export type Middleware = (
@@ -17,9 +18,10 @@ export type ErrorHandler = (
 export interface ShahriarIncomingMessage extends http.IncomingMessage {
   body?: any;
   params?: { [key: string]: string };
+  query?: { [key: string]: string | string[] };
 }
 export class Router {
-  private routes: { [key: string]: Middleware[] } = {};
+  private trie = new RouteTrie();
   private middlewares: Middleware[] = [];
   private errorHandlers: ErrorHandler[] = [];
 
@@ -32,49 +34,49 @@ export class Router {
   }
 
   post(path: string, ...handlers: Middleware[]) {
-    this.routes[`POST ${path}`] = handlers;
+    this.trie.insert("POST", path, handlers);
   }
 
   put(path: string, ...handlers: Middleware[]) {
-    this.routes[`PUT ${path}`] = handlers;
+    this.trie.insert("PUT", path, handlers);
   }
 
   delete(path: string, ...handlers: Middleware[]) {
-    this.routes[`DELETE ${path}`] = handlers;
+    this.trie.insert("DELETE", path, handlers);
   }
   get(path: string, ...handlers: Middleware[]) {
-    this.routes[`GET ${path}`] = handlers;
+    this.trie.insert("GET", path, handlers);
   }
 
-  private matchRoute(method: string, path: string) {
-    for (const route in this.routes) {
-      const [routeMethod, routePath] = route.split(" ");
-      if (method === routeMethod) {
-        const routeParts = routePath.split("/").filter(Boolean);
-        const pathParts = path.split("/").filter(Boolean);
+//   private matchRoute(method: string, path: string) {
+//     for (const route in this.routes) {
+//       const [routeMethod, routePath] = route.split(" ");
+//       if (method === routeMethod) {
+//         const routeParts = routePath.split("/").filter(Boolean);
+//         const pathParts = path.split("/").filter(Boolean);
 
-        if (routeParts.length === pathParts.length) {
-          const params: { [key: string]: string } = {};
-          let match = true;
+//         if (routeParts.length === pathParts.length) {
+//           const params: { [key: string]: string } = {};
+//           let match = true;
 
-          for (let i = 0; i < routeParts.length; i++) {
-            if (routeParts[i].startsWith(":")) {
-              const paramName = routeParts[i].slice(1);
-              params[paramName] = pathParts[i];
-            } else if (routeParts[i] !== pathParts[i]) {
-              match = false;
-              break;
-            }
-          }
+//           for (let i = 0; i < routeParts.length; i++) {
+//             if (routeParts[i].startsWith(":")) {
+//               const paramName = routeParts[i].slice(1);
+//               params[paramName] = pathParts[i];
+//             } else if (routeParts[i] !== pathParts[i]) {
+//               match = false;
+//               break;
+//             }
+//           }
 
-          if (match) {
-            return { handlers: this.routes[route], params };
-          }
-        }
-      }
-    }
-    return null;
-  }
+//           if (match) {
+//             return { handlers: this.routes[route], params };
+//           }
+//         }
+//       }
+//     }
+//     return null;
+//   }
 
   handle(
     req: ShahriarIncomingMessage,
@@ -84,13 +86,18 @@ export class Router {
     const method = req.method || "GET";
     const path = parsedUrl.pathname || "";
 
-    const routeMatch = this.matchRoute(method, path);
+    const routeMatch = this.trie.search(method, path);
     if (!routeMatch) {
       res.writeHead(404);
       res.end("Not Found");
       return;
     }
     req.params = routeMatch.params;
+    req.query = Object.fromEntries(
+      Object.entries(parsedUrl.query).filter(
+        ([_, value]) => value !== undefined
+      )
+    ) as { [key: string]: string | string[] };
 
     const handlers = routeMatch.handlers;
     const allHandlers = [...this.middlewares, ...handlers];
