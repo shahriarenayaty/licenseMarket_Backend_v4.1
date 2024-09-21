@@ -4,6 +4,7 @@ class TrieNode {
   children: { [key: string]: TrieNode } = {};
   handlers: Middleware[] | null = null;
   paramName: string | null = null;
+  wildcard: TrieNode | null = null;
 }
 
 export class RouteTrie {
@@ -14,7 +15,12 @@ export class RouteTrie {
     let currentNode = this.root;
 
     for (const segment of segments) {
-      if (segment.startsWith(":")) {
+      if (segment === "*") {
+        if (!currentNode.wildcard) {
+          currentNode.wildcard = new TrieNode();
+        }
+        currentNode = currentNode.wildcard;
+      } else if (segment.startsWith(":")) {
         if (!currentNode.children[":"]) {
           currentNode.children[":"] = new TrieNode();
         }
@@ -44,6 +50,9 @@ export class RouteTrie {
         if (currentNode.paramName) {
           params[currentNode.paramName] = segment;
         }
+      } else if (currentNode.wildcard) {
+        currentNode = currentNode.wildcard;
+        break;
       } else {
         return null;
       }

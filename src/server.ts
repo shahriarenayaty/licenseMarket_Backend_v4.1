@@ -70,6 +70,14 @@ const server = http.createServer((req, res) => {
   // Mount the user router at the /users path
   myRouter.useRoute("/users", userRouter);
 
+  // Define a wildcard route
+  myRouter.get("/api/*", (req, res, next) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({ message: "Wildcard route matched", path: req.url })
+    );
+  });
+
   myRouter.handle(req, res);
 });
 
