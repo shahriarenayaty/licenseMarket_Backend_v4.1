@@ -41,6 +41,27 @@ const server = http.createServer((req, res) => {
     console.log("Request received");
     next();
   });
+
+  // Middleware to parse JSON body
+  myRouter.use((req, res, next) => {
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+      req.on("end", () => {
+        try {
+          
+          req.body = JSON.parse(body);
+          next();
+        } catch (err) {
+          next(err);
+        }
+      });
+    } else {
+      next();
+    }
+  });
   // Error handling middleware
   myRouter.useError((err, req, res, next) => {
     console.error("Error:", err);
@@ -53,7 +74,14 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ users: ["user1", "user2"] }));
   });
 
-  // myRouter.handle(req, res);
+  // Custom POST route
+  myRouter.post("/users", (req, res, next) => {
+    console.log("Received data:", req.body);
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ message: "User created", data: req.body }));
+  });
+
+  myRouter.handle(req, res);
 });
 
 server.listen(PORT, () => {

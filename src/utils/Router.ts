@@ -2,16 +2,20 @@ import http from "http";
 
 // Define types for middleware and error handling
 export type Middleware = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse<http.IncomingMessage>,
+  req: ShahriarIncomingMessage,
+  res: http.ServerResponse<ShahriarIncomingMessage>,
   next: (err?: any) => void
 ) => void;
 export type ErrorHandler = (
   err: any,
-  req: http.IncomingMessage,
-  res: http.ServerResponse<http.IncomingMessage>,
+  req: ShahriarIncomingMessage,
+  res: http.ServerResponse<ShahriarIncomingMessage>,
   next: (err?: any) => void
 ) => void;
+
+export interface ShahriarIncomingMessage extends http.IncomingMessage {
+  body?: any;
+}
 export class Router {
   private routes: { [key: string]: Middleware[] } = {};
   private middlewares: Middleware[] = [];
@@ -41,8 +45,8 @@ export class Router {
   }
 
   handle(
-    req: http.IncomingMessage,
-    res: http.ServerResponse<http.IncomingMessage>
+    req: ShahriarIncomingMessage,
+    res: http.ServerResponse<ShahriarIncomingMessage>
   ) {
     const methodPath = `${req.method} ${req.url}`;
     const handlers = this.routes[methodPath] || [];
@@ -64,8 +68,8 @@ export class Router {
 
   private handleError(
     err: any,
-    req: http.IncomingMessage,
-    res: http.ServerResponse<http.IncomingMessage>
+    req: ShahriarIncomingMessage,
+    res: http.ServerResponse<ShahriarIncomingMessage>
   ) {
     let index = 0;
     const next = (error?: any) => {
