@@ -2,7 +2,7 @@ import http from "http";
 // import Router from "./utils/router";
 
 import { Router } from "./utils/Router";
-import { userRoutes } from "./route/users";
+import userRouter from "./route/users";
 const PORT = process.env.PORT || 3000;
 
 // Initialize an array of users to simulate a data store
@@ -67,7 +67,8 @@ const server = http.createServer((req, res) => {
     res.end("Something went wrong");
   });
 
-  userRoutes(myRouter);
+  // Mount the user router at the /users path
+  myRouter.useRoute("/users", userRouter);
 
   myRouter.handle(req, res);
 });

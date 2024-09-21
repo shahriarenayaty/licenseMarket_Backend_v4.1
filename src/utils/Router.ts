@@ -24,6 +24,7 @@ export class Router {
   private trie = new RouteTrie();
   private middlewares: Middleware[] = [];
   private errorHandlers: ErrorHandler[] = [];
+  private subRouters: { [key: string]: Router } = {};
 
   use(middleware: Middleware) {
     this.middlewares.push(middleware);
@@ -48,43 +49,26 @@ export class Router {
     this.trie.insert("GET", path, handlers);
   }
 
-//   private matchRoute(method: string, path: string) {
-//     for (const route in this.routes) {
-//       const [routeMethod, routePath] = route.split(" ");
-//       if (method === routeMethod) {
-//         const routeParts = routePath.split("/").filter(Boolean);
-//         const pathParts = path.split("/").filter(Boolean);
-
-//         if (routeParts.length === pathParts.length) {
-//           const params: { [key: string]: string } = {};
-//           let match = true;
-
-//           for (let i = 0; i < routeParts.length; i++) {
-//             if (routeParts[i].startsWith(":")) {
-//               const paramName = routeParts[i].slice(1);
-//               params[paramName] = pathParts[i];
-//             } else if (routeParts[i] !== pathParts[i]) {
-//               match = false;
-//               break;
-//             }
-//           }
-
-//           if (match) {
-//             return { handlers: this.routes[route], params };
-//           }
-//         }
-//       }
-//     }
-//     return null;
-//   }
+  useRoute(path: string, subRouter: Router) {
+    this.subRouters[path] = subRouter;
+  }
 
   handle(
     req: ShahriarIncomingMessage,
     res: http.ServerResponse<ShahriarIncomingMessage>
-  ) {
+  ): void {
     const parsedUrl = url.parse(req.url || "", true);
     const method = req.method || "GET";
     const path = parsedUrl.pathname || "";
+
+    // Check if the request should be handled by a sub-router
+    for (const subPath in this.subRouters) {
+      if (path.startsWith(subPath)) {
+        const subRouter = this.subRouters[subPath];
+        req.url = path.slice(subPath.length) || "/";
+        return subRouter.handle(req, res);
+      }
+    }
 
     const routeMatch = this.trie.search(method, path);
     if (!routeMatch) {
