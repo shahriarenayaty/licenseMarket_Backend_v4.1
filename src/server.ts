@@ -1,5 +1,4 @@
 import http from "http";
-import url from "url";
 // import Router from "./utils/router";
 
 import { Router } from "./utils/Router";
@@ -34,8 +33,6 @@ let users = [
 ];
 
 const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url || "", true);
-
   const myRouter = new Router();
   myRouter.use((req, res, next) => {
     console.log("Request received");
@@ -44,14 +41,14 @@ const server = http.createServer((req, res) => {
 
   // Middleware to parse JSON body
   myRouter.use((req, res, next) => {
-    if (req.method === "POST") {
+    if (req.method === "POST" || req.method === "PUT") {
       let body = "";
       req.on("data", (chunk) => {
         body += chunk.toString();
       });
       req.on("end", () => {
         try {
-          
+          if (body === "") body = "{}";
           req.body = JSON.parse(body);
           next();
         } catch (err) {
@@ -79,6 +76,16 @@ const server = http.createServer((req, res) => {
     console.log("Received data:", req.body);
     res.writeHead(201, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "User created", data: req.body }));
+  });
+
+  // Custom PUT route
+  myRouter.put("/users/:id", (req, res, next) => {
+    const userId = req.params?.id;
+    console.log(`Updating user with ID: ${userId}`, req.body);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({ message: `User ${userId} updated`, data: req.body })
+    );
   });
 
   myRouter.handle(req, res);

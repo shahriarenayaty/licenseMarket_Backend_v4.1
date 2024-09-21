@@ -1,4 +1,5 @@
 import http from "http";
+import url from "url";
 
 // Define types for middleware and error handling
 export type Middleware = (
@@ -15,6 +16,7 @@ export type ErrorHandler = (
 
 export interface ShahriarIncomingMessage extends http.IncomingMessage {
   body?: any;
+  params?: { [key: string]: string };
 }
 export class Router {
   private routes: { [key: string]: Middleware[] } = {};
@@ -44,12 +46,53 @@ export class Router {
     this.routes[`GET ${path}`] = handlers;
   }
 
+  private matchRoute(method: string, path: string) {
+    for (const route in this.routes) {
+      const [routeMethod, routePath] = route.split(" ");
+      if (method === routeMethod) {
+        const routeParts = routePath.split("/").filter(Boolean);
+        const pathParts = path.split("/").filter(Boolean);
+
+        if (routeParts.length === pathParts.length) {
+          const params: { [key: string]: string } = {};
+          let match = true;
+
+          for (let i = 0; i < routeParts.length; i++) {
+            if (routeParts[i].startsWith(":")) {
+              const paramName = routeParts[i].slice(1);
+              params[paramName] = pathParts[i];
+            } else if (routeParts[i] !== pathParts[i]) {
+              match = false;
+              break;
+            }
+          }
+
+          if (match) {
+            return { handlers: this.routes[route], params };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   handle(
     req: ShahriarIncomingMessage,
     res: http.ServerResponse<ShahriarIncomingMessage>
   ) {
-    const methodPath = `${req.method} ${req.url}`;
-    const handlers = this.routes[methodPath] || [];
+    const parsedUrl = url.parse(req.url || "", true);
+    const method = req.method || "GET";
+    const path = parsedUrl.pathname || "";
+
+    const routeMatch = this.matchRoute(method, path);
+    if (!routeMatch) {
+      res.writeHead(404);
+      res.end("Not Found");
+      return;
+    }
+    req.params = routeMatch.params;
+
+    const handlers = routeMatch.handlers;
     const allHandlers = [...this.middlewares, ...handlers];
 
     let index = 0;
