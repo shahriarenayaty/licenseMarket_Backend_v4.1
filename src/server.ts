@@ -1,5 +1,8 @@
 import http from "http";
 import url from "url";
+// import Router from "./utils/router";
+
+import { Router } from "./utils/Router";
 const PORT = process.env.PORT || 3000;
 
 // Initialize an array of users to simulate a data store
@@ -31,7 +34,26 @@ let users = [
 ];
 
 const server = http.createServer((req, res) => {
-  //TODO: Handle CORS
+  const parsedUrl = url.parse(req.url || "", true);
+
+  const myRouter = new Router();
+  myRouter.use((req, res, next) => {
+    console.log("Request received");
+    next();
+  });
+  // Error handling middleware
+  myRouter.useError((err, req, res, next) => {
+    console.error("Error:", err);
+    res.writeHead(500);
+    res.end("Something went wrong");
+  });
+  // Custom route
+  myRouter.get("/users", (req, res, next) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ users: ["user1", "user2"] }));
+  });
+
+  // myRouter.handle(req, res);
 });
 
 server.listen(PORT, () => {
