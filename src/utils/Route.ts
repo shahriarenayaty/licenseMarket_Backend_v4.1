@@ -13,7 +13,7 @@ export class RouteTrie {
   insert(method: string, path: string, handlers: Middleware[]) {
     const segments = [method, ...path.split("/").filter(Boolean)];
     let currentNode = this.root;
-
+    
     for (const segment of segments) {
       if (segment === "*") {
         if (!currentNode.wildcard) {

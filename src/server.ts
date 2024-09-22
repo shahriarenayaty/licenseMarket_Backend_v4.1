@@ -3,6 +3,7 @@ import http from "http";
 
 import { Router } from "./utils/Router";
 import userRouter from "./route/users";
+import MyErrorHandler, { sendError } from "./utils/MyErrorHandler";
 const PORT = process.env.PORT || 3000;
 
 // Initialize an array of users to simulate a data store
@@ -35,8 +36,10 @@ let users = [
 
 const server = http.createServer((req, res) => {
   const myRouter = new Router();
+
   myRouter.use((req, res, next) => {
     console.log("Request received");
+    throw new MyErrorHandler("Something went wrong", 500);
     next();
   });
 
@@ -63,8 +66,7 @@ const server = http.createServer((req, res) => {
   // Error handling middleware
   myRouter.useError((err, req, res, next) => {
     console.error("Error:", err);
-    res.writeHead(500);
-    res.end("Something went wrong");
+    sendError(res, err);
   });
 
   // Mount the user router at the /users path
